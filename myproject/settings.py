@@ -84,7 +84,7 @@ WSGI_APPLICATION = 'myproject.wsgi.application'
 
 
 
-database_url = "postgresql://mvp_n5ew_user:GqXSdqDftYoOPLZiLIqQWYzVV0usyY2J@dpg-cvdvmnrtq21c73e9robg-a.oregon-postgres.render.com/mvp_n5ew"
+database_url = "postgresql://mvp_i6mn_user:ZhoB8r4fFVbXSQl2lQph4XdZ9wQHkThO@dpg-cve4a3vnoe9s73el64a0-a.oregon-postgres.render.com/mvp_i6mn"
 
 db_config = dj_database_url.parse(database_url)
 
