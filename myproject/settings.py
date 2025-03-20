@@ -13,8 +13,6 @@ SECRET_KEY = 'replace-this-with-a-unique-secret-key'
 DEBUG = True
 ALLOWED_HOSTS = ['*']  # or specify your domains
 
-CSRF_TRUSTED_ORIGINS = ["http://localhost", "https://mvp-ixu5.onrender.com"]
-
 # Application definition
 SHARED_APPS = [
     'django_tenants',
