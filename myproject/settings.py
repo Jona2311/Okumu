@@ -10,7 +10,7 @@ import dj_database_url
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'replace-this-with-a-unique-secret-key'
-DEBUG = True
+DEBUG = False
 ALLOWED_HOSTS = ['*']  # or specify your domains
 
 # Application definition
