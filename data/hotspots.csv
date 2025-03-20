@@ -1,0 +1,20 @@
+id,name,type,lat,lon,category
+node/4380513497,Unknown,Feature,0.5474989,34.0206039,bar
+node/4755011914,Sangalo Sand Beach Majanji,Feature,0.2406349,33.991086,hotel
+node/6993629548,Rand Hotel,Feature,0.4717872,34.0771598,hotel
+node/7212221585,Emirates Guest house,Feature,0.4668385,34.0874655,guest_house
+node/7521798885,Comrades Guest house,Feature,0.4650055,34.085916,guest_house
+node/8007203885,Comrades Guest House,Feature,0.4662441,34.0869767,guest_house
+node/8018816486,Galaxy lounge,Feature,0.4723451,34.0747229,bar
+node/8420781218,Staff quarters,Feature,0.5422205,34.0256799,guest_house
+node/8420795517,Babulo Hostel,Feature,0.5414677,34.0261642,hostel
+node/8422980217,Olympia Hostel,Feature,0.5392504,34.0265643,hostel
+node/8422981917,Jamaican Hostel,Feature,0.5388138,34.0253934,hostel
+node/8438776519,Goshen Hostel,Feature,0.5395923,34.0256821,hostel
+node/8448255417,Jackson Pub,Feature,0.3406003,33.8802143,bar
+node/8607849218,Jamaican Hostel,Feature,0.5378469,34.0270165,hostel
+node/8607901217,Green,Feature,0.539597,34.0272009,hostel
+node/8860666925,VPN,Feature,0.539977,34.02612,bar
+node/9168952687,Urban,Feature,0.4672514,34.0868982,guest_house
+node/9588591117,Underwood Ndaiga,Feature,0.5775773,34.0435148,guest_house
+node/10831663509,guesthouse 25000ugx,Feature,0.4080656,34.0349361,hotel

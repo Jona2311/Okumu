@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Map Controls Card -->
+    <div class="bg-white rounded-xl shadow-sm p-6">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">Interactive Health Center Map</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Map layers control -->
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 card-hover">
+                <h3 class="font-semibold text-gray-700 mb-3">Map Layers</h3>
+                <div class="space-y-3">
+                    <label class="flex items-center space-x-3 cursor-pointer">
+                        <input type="checkbox" checked class="form-checkbox h-5 w-5 text-blue-600 rounded focus:ring-blue-500" id="layer-health-centers">
+                        <span class="text-gray-700">Health Centers</span>
+                    </label>
+                    <label class="flex items-center space-x-3 cursor-pointer">
+                        <input type="checkbox" checked class="form-checkbox h-5 w-5 text-blue-600 rounded focus:ring-blue-500" id="layer-zones">
+                        <span class="text-gray-700">Hot Zones</span>
+                    </label>
+                    <label class="flex items-center space-x-3 cursor-pointer">
+                        <input type="checkbox" checked class="form-checkbox h-5 w-5 text-blue-600 rounded focus:ring-blue-500" id="layer-hotspots">
+                        <span class="text-gray-700">Hotspots</span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Legend -->
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 card-hover">
+                <h3 class="font-semibold text-gray-700 mb-3">Legend</h3>
+                <div class="space-y-2.5">
+                    <div class="flex items-center">
+                        <div class="w-6 h-6 mr-3 flex items-center justify-center">
+                            <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png" class="w-4 h-5">
+                        </div>
+                        <span class="text-gray-700">Health Center</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-6 h-6 rounded mr-3" style="background-color: #023020;"></div>
+                        <span class="text-gray-700">Hot Zone</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-6 h-6 mr-3 flex items-center justify-center">
+                            <img src="https://cdn-icons-png.flaticon.com/512/684/684908.png" class="w-5 h-5">
+                        </div>
+                        <span class="text-gray-700">Hotspot</span>
+                    </div>                    
+                    <div class="flex items-center">
+                        <div class="w-6 h-6 mr-3 flex items-center justify-center">
+                            <img src="https://cdn-icons-png.flaticon.com/512/447/447031.png" class="w-5 h-5">
+                        </div>
+                        <span class="text-gray-700">Your Location</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Statistics -->
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 card-hover">
+                <h3 class="font-semibold text-gray-700 mb-3">Summary</h3>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-blue-50 p-3 rounded-lg flex flex-col items-center justify-center">
+                        <div class="text-2xl font-bold text-blue-600" id="total-centers">0</div>
+                        <div class="text-xs text-gray-500">Health Centers</div>
+                    </div>
+                    <div class="bg-green-50 p-3 rounded-lg flex flex-col items-center justify-center">
+                        <div class="text-2xl font-bold text-green-600" id="total-zones">0</div>
+                        <div class="text-xs text-gray-500">Hot Zones</div>
+                    </div>
+                    <div class="bg-red-50 p-3 rounded-lg flex flex-col items-center justify-center">
+                        <div class="text-2xl font-bold text-red-600" id="total-hotspots">0</div>
+                        <div class="text-xs text-gray-500">Hotspots</div>
+                    </div>                    
+                    <div class="bg-purple-50 p-3 rounded-lg flex flex-col items-center justify-center">
+                        <div class="text-2xl font-bold text-purple-600" id="total-stories">0</div>
+                        <div class="text-xs text-gray-500">Stories</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Map container -->
+    <div id="map-container" class="relative w-full rounded-xl overflow-hidden shadow-md" style="height: 600px;">
+        <div id="map" class="absolute top-0 left-0 w-full h-full transition-all duration-300"></div>
+    
+        <!-- Side Panel for Zone Story (initially hidden) -->
+        <div id="zonePanel" 
+             class="absolute top-0 right-0 h-full bg-white shadow-md overflow-y-auto transition-all duration-300 z-10"
+             style="width: 0;"></div>
+        
+        <!-- Map controls -->
+        <div class="absolute top-4 right-4 z-10 bg-white rounded-lg shadow-sm p-1.5 flex space-x-1">
+            <button id="reset-view" class="w-9 h-9 flex items-center justify-center text-blue-600 hover:bg-gray-100 rounded-md transition-colors" title="Reset View">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+            </button>
+            <button id="toggle-fullscreen" class="w-9 h-9 flex items-center justify-center text-blue-600 hover:bg-gray-100 rounded-md transition-colors" title="Toggle Fullscreen">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
+                </svg>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Health center details panel -->
+    <div id="health-center-details" class="bg-white rounded-xl shadow-sm p-6 hidden animate-fade-in">
+        <div class="flex justify-between items-center mb-5">
+            <h2 id="selected-center-name" class="text-xl font-bold text-gray-800">Health Center Name</h2>
+            <button id="close-center-details" class="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 card-hover">
+                <div class="text-xs text-gray-500 mb-1">Location</div>
+                <div id="center-location" class="font-medium text-gray-800">0.000, 0.000</div>
+            </div>
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 card-hover">
+                <div class="text-xs text-gray-500 mb-1">Stories</div>
+                <div id="center-stories-count" class="font-medium text-gray-800">0 stories</div>
+            </div>
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 card-hover">
+                <div class="text-xs text-gray-500 mb-1">Distance from nearest pinned location</div>
+                <div id="center-distance" class="font-medium text-gray-800">Not calculated</div>
+            </div>
+        </div>
+        
+        <div>
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-bold text-gray-700">Community Stories</h3>
+                {% if user.is_authenticated %}
+                <!-- Only show if logged in -->
+                <button id="add-story-button"
+                        class="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 4v16m8-8H4" />
+                    </svg>
+                    Add Story
+                </button>
+                {% endif %}
+            </div>
+            
+            <div id="center-stories-list" class="space-y-3 max-h-72 overflow-y-auto p-1 rounded-lg border border-gray-100">
+                <div class="text-gray-500 text-center py-6">No stories available for this health center.</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Story Form Container (appears outside the map) -->
+    <div id="storyFormContainer" class="bg-white rounded-xl shadow-sm p-6 hidden animate-fade-in">
+        <div class="flex justify-between items-center mb-5">
+            <h2 class="text-xl font-bold text-gray-800">Add a Story</h2>
+            <button id="closeStoryForm" class="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <form id="storyForm" class="space-y-4">
+            <input type="hidden" id="storyCenterId">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                <input type="text" id="storyTitle" class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" required>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Content</label>
+                <textarea id="storyContent" class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" rows="4" required></textarea>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Author</label>
+                <input type="text" id="storyAuthor" class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="Your name (or leave blank for Anonymous)">
+            </div>
+            <div class="flex justify-end pt-2">
+                <button type="button" id="submitStory" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 rounded-md transition-colors duration-200">
+                    Submit
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{{ health_centers|json_script:"healthcenters_json" }}
+{{ zones|json_script:"zones_json" }}
+{{ hotspots|json_script:"hotspots_json" }}
+
+<!-- External JS for index functionalities -->
+<script src="{% static 'js/index.js' %}"></script>
+{% endblock %}

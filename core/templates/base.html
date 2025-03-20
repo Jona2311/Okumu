@@ -1,0 +1,303 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Busia Health Centers</title>
+
+  <!-- Leaflet CSS/JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
+  <!-- Tailwind CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Inline Styling for Chatbot UI and Logout Button -->
+  <style>
+    :root {
+      --primary: #4361ee;
+      --primary-dark: #3a56d4;
+      --gray-200: #e9ecef;
+      --gray-800: #343a40;
+    }
+
+    /* Button Styles (applied to both logout and chatbot buttons) */
+    .btn {
+      padding: 0.6rem 1.2rem;
+      border-radius: 10px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn::after {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(100%);
+      transition: transform 0.3s ease;
+    }
+    .btn:hover::after {
+      transform: translateY(0);
+    }
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+    .btn-primary:hover {
+      background: var(--primary-dark);
+    }
+    .btn-danger {
+      background: #e63946;
+      color: white;
+    }
+    .btn-danger:hover {
+      background: #d62b39;
+    }
+
+    /* Chatbot Widget & Panel */
+    #chatbot-widget {
+      z-index: 10000 !important;
+    }
+    #chatbot-panel {
+      z-index: 10001 !important;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+      animation: fadeIn 0.4s ease-out;
+    }
+    @keyframes fadeOut {
+      from { opacity: 1; transform: translateY(0); }
+      to { opacity: 0; transform: translateY(10px); }
+    }
+    .animate-fade-out {
+      animation: fadeOut 0.3s ease-out;
+    }
+    .chat-message {
+      max-width: 85%;
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.75rem;
+      border-radius: 16px;
+      position: relative;
+      word-break: break-word;
+    }
+    .chat-message-user {
+      background: var(--primary);
+      color: white;
+      margin-left: auto;
+      border-bottom-right-radius: 4px;
+    }
+    .chat-message-bot {
+      background: var(--gray-200);
+      color: var(--gray-800);
+      margin-right: auto;
+      border-bottom-left-radius: 4px;
+    }
+  </style>
+
+  <!-- External CSS for other styles -->
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body class="min-h-screen flex flex-col">
+  <header class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg">
+    <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+      <div class="flex items-center space-x-3">
+        <!-- Logo / Title -->
+        <div class="w-10 h-10 rounded-full bg-white bg-opacity-20 flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+               viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1
+                     m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0
+                     011 1v5m-4 0h4" />
+          </svg>
+        </div>
+        <h1 class="text-2xl font-bold tracking-tight">Busia Health Centers</h1>
+      </div>
+
+      <div class="flex items-center space-x-4">
+        {% if user.is_authenticated %}
+          <!-- Welcome + Logout -->
+          <span class="hidden sm:flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none"
+                 viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655
+                       6.879 1.804M15 10a3 3 0 11-6 0 3 3 0
+                       016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span class="font-medium">Welcome</span>
+          </span>
+
+          <form action="{% url 'accounts:logout' %}" method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none"
+                   viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M17 16l4-4m0 0l-4-4m4 4H7m6
+                         4v1a3 3 0 01-3 3H6a3 3 0
+                         01-3-3V7a3 3 0 013-3h4a3 3
+                         0 013 3v1" />
+              </svg>
+              Logout
+            </button>
+          </form>
+        {% else %}
+          <!-- Login button only -->
+          <a href="{% url 'accounts:tenant_login' %}" class="btn btn-primary flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none"
+                 viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M5.121 17.804A13.937 13.937 0
+                       0112 16c2.5 0 4.847.655 6.879
+                       1.804M15 10a3 3 0 11-6 0 3 3
+                       0 016 0zm6 2a9 9 0 11-18 0 9
+                       9 0 0118 0z" />
+            </svg>
+            Login
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-grow">
+    <div class="container mx-auto mt-6 px-4 pb-8">
+      {% block content %}
+      {% endblock %}
+    </div>
+  </main>
+
+  <footer class="bg-gradient-to-r from-gray-800 to-gray-900 text-white py-6">
+    <div class="mt-4 text-center">
+      <p class="text-xs text-gray-400">MVP</p>
+    </div>
+  </footer>
+
+  <!-- Story Submission Modal (remains unchanged) -->
+  <div id="storyModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-70 backdrop-blur-sm flex justify-center items-center z-50 animate-fade-in">
+    <div class="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-md mx-4 transform transition-all">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-bold text-gray-800 flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+          Submit Your Story
+        </h2>
+        <button id="closeModal" class="text-gray-500 hover:text-gray-700 focus:outline-none p-2 rounded-full hover:bg-gray-100 transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <input type="hidden" id="selectedHealthCenterId">
+
+      <div class="space-y-5">
+        <div>
+          <label for="storyTitle" class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+          <input type="text" id="storyTitle" placeholder="Story Title" class="form-input">
+        </div>
+
+        <div>
+          <label for="storyContent" class="block text-sm font-medium text-gray-700 mb-1">Your Story</label>
+          <textarea id="storyContent" placeholder="Write your story..." rows="4" class="form-input"></textarea>
+        </div>
+
+        <div>
+          <label for="storyAuthor" class="block text-sm font-medium text-gray-700 mb-1">Your Name</label>
+          <input type="text" id="storyAuthor" placeholder="Your Name (Optional)" class="form-input">
+          <p class="mt-1 text-xs text-gray-500">Leave blank to remain anonymous</p>
+        </div>
+      </div>
+
+      <div class="flex justify-end mt-6 space-x-3">
+        <button id="cancelStory" class="btn bg-gray-200 hover:bg-gray-300 text-gray-800">
+          Cancel
+        </button>
+        <button id="submitStory" class="btn btn-primary">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+          </svg>
+          Submit
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modern Chatbot Widget -->
+  <div id="chatbot-widget" class="fixed bottom-6 right-6">
+    <!-- Chatbot Button (when closed) -->
+    <button id="chatbot-toggle-button" class="w-16 h-16 rounded-full bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg flex items-center justify-center hover:scale-110 transition-transform duration-300">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+      </svg>
+    </button>
+
+    <!-- Chatbot Panel -->
+    <div id="chatbot-panel" class="hidden absolute bottom-20 right-0 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in" style="z-index: 1000;">
+      <!-- Header -->
+      <div class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-4 flex items-center justify-between">
+        <div class="flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+          </svg>
+          <span class="font-medium">ChatBot</span>
+        </div>
+        <button id="chatbot-close" class="p-1 rounded-full hover:bg-white hover:bg-opacity-20 transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Messages Area -->
+      <div id="chatbot-messages" class="h-80 p-4 overflow-y-auto">
+        <!-- Welcome message will be added here -->
+      </div>
+
+      <!-- Input Area -->
+      <div class="border-t border-gray-200 p-4">
+        <div class="flex items-center bg-gray-100 rounded-full p-1 pl-4">
+          <input type="text" id="chatbot-input" placeholder="Type your message..." class="bg-transparent border-none flex-1 focus:outline-none text-gray-700">
+          <button id="chatbot-mic" class="p-2 rounded-full hover:bg-gray-200 transition-colors" title="Voice Input">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+            </svg>
+          </button>
+        </div>
+        <button id="chatbot-send" class="mt-3 btn btn-primary w-full">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+          </svg>
+          Send
+        </button>
+      </div>
+    </div>
+  </div>
+  <script>
+    var IS_USER_LOGGED_IN = {% if user.is_authenticated %}true{% else %}false{% endif %};
+  </script>
+  <!-- External JS for base functionalities -->
+  <script src="{% static 'js/base.js' %}"></script>
+</body>
+</html>
