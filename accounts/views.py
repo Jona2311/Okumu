@@ -7,15 +7,16 @@ from django.conf import settings
 class TenantLoginView(LoginView):
     template_name = 'landing.html'  # login form
 
-    def get_success_url(self):
-        user = self.request.user
-        tenant = user.tenants.exclude(schema_name="public").first()
-        if tenant:
-            domain_obj = tenant.domains.filter(is_primary=True).first()
-            if domain_obj:
-                scheme = "http" if settings.DEBUG else "https"  # Use HTTPS in production
-                return f"{scheme}://{domain_obj.domain}/"
-        return "/"
+def get_success_url(self):
+    user = self.request.user
+    tenant = user.tenants.exclude(schema_name="public").first()
+    if tenant:
+        domain_obj = tenant.domains.filter(is_primary=True).first()
+        if domain_obj:
+            return f"http://{domain_obj.domain}/"  # No port number at all
+
+    # Default fallback now goes to root ('/') which shows the map
+    return "/"
 
 
 def logout_view(request):
